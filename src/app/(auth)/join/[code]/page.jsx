@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
+import { connection } from "next/server";
 import {
   Card,
   CardContent,
@@ -21,6 +22,9 @@ export default function JoinPage({ params }) {
 }
 
 async function JoinContent({ params }) {
+  // Supabase Auth reads Date.now() for token expiry; defer before prerender.
+  await connection();
+
   const { code } = await params;
   const user = await getCurrentUser();
 

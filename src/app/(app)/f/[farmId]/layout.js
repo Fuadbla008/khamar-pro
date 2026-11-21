@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { connection } from "next/server";
 import { AppShell } from "@/components/layout/app-shell";
 import { FarmOwnerProvider } from "@/components/layout/farm-switcher";
 import { requireFarmAccess } from "@/lib/auth/require-farm-access";
@@ -14,6 +15,12 @@ export default function FarmLayout({ children, params }) {
 }
 
 async function FarmShell({ children, params }) {
+  // Supabase Auth reads token expiry via Date.now() while resolving the
+  // session. That is unstable during prerender, so defer the whole shell to
+  // request time before creating the client. The Suspense boundary above
+  // keeps navigation instant.
+  await connection();
+
   const { farmId } = await params;
   const { supabase, user, role } = await requireFarmAccess(farmId);
 

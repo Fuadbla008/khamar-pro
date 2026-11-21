@@ -108,7 +108,7 @@ async function syncPurchaseLedger(
 
   const { data: existing, error: lookupError } = await client
     .from("transactions")
-    .select("id")
+    .select("id, date")
     .eq("farm_id", farmId)
     .eq("animal_id", animalId)
     .eq("category_code", PURCHASE_CATEGORY)
@@ -120,7 +120,8 @@ async function syncPurchaseLedger(
     return { error: "ক্রয় লেনদেন যাচাই করা যায়নি, আবার চেষ্টা করুন" };
   }
 
-  const linkedId = existing?.[0]?.id ?? null;
+  const linked = existing?.[0] ?? null;
+  const linkedId = linked?.id ?? null;
 
   // Price cleared (or zero): no ledger row should remain for this purchase.
   if (!hasPrice) {
@@ -141,7 +142,10 @@ async function syncPurchaseLedger(
     type: "expense",
     category_code: PURCHASE_CATEGORY,
     amount,
-    date: purchaseDate || todayIso(),
+    // Keep the original expense date when only the price changes. Falling back
+    // to the linked row prevents an edit from shifting the cost into another
+    // month in reports.
+    date: purchaseDate || linked?.date || todayIso(),
     animal_id: animalId,
     note: purchaseNote(tagNo, animalId),
   };
@@ -348,6 +352,16 @@ export async function deleteAnimalAction(formData) {
   if (error) {
     redirect(`/f/${farmId}/animals?error=delete-failed`);
   }
+
+  // A deleted animal must not leave its purchase expense active in the ledger
+  // or reports. Reusing the sync helper with no price soft-deletes the linked
+  // row via the same farm-scoped marker used on create/update.
+  await syncLedgerWithFallback(supabase, {
+    farmId,
+    animalId,
+    tagNo: "",
+    price: 0,
+  });
 
   revalidateAnimalPaths(farmId, animalId);
   redirect(`/f/${farmId}/animals`);

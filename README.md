@@ -116,6 +116,13 @@ sync.
 npm run dev
 ```
 
+Development output lives in `.next-dev` and production output in `.next`, so a
+build can run without clobbering a live dev server. On Windows, overlapping a
+`next build` with `next dev` can still cause an intermittent EPERM on Next's
+server-reference manifest; the dev server recovers on its own, but for a clean
+restart run `npm run dev:clean` (it clears `.next-dev` first). Prefer stopping
+the dev server before a production build.
+
 Open `http://localhost:3000`. A new account is routed to `/onboarding`, where
 `create_farm()` creates the farm and copies all global categories and fields
 into it. An existing owner can add more farms later from the farm switcher's
@@ -238,9 +245,11 @@ are Bengali and money values use the same integer-cent formatting as reports.
 `public/manifest.json` declares the Bengali app name `খামার`, the green/cream
 theme, standalone display and 192/512/maskable icons in `public/icons/`.
 `public/sw.js` is a small dependency-free service worker: it precaches the app
-shell, uses network-first for navigations and Supabase/RSC data, falls back to
+shell, uses network-first for navigations and Supabase REST reads, falls back to
 `/~offline` with a Bengali message, and refreshes static assets while
-revalidating. `@ducanh2912/next-pwa` remains installed for webpack builds, but
+revalidating. Next.js RSC payloads and Supabase Auth requests are deliberately
+left alone so a slow request can never be replaced by a synthetic response that
+leaves a route spinning. `@ducanh2912/next-pwa` remains installed for webpack builds, but
 this repo builds with Turbopack, so the static worker is the effective PWA
 implementation. A mobile-only install banner appears after the second visit.
 
@@ -283,11 +292,14 @@ farm gets its own owner membership, copied categories/fields and isolated data.
 Creating an animal with a positive purchase price also writes an `expense`
 transaction with category `animal_purchase`, the price as its amount, the
 purchase date, and a stable `[animal:<id>]` note marker. Editing the animal
-updates that linked ledger row; clearing the price soft-deletes it. The write
-uses `createAdminClient()` when the service-role key is configured, with a
+updates that linked ledger row; clearing the price or deleting the animal
+soft-deletes it. Editing an animal without changing the purchase date keeps the
+original expense date, so monthly reports do not shift. The write uses
+`createAdminClient()` when the service-role key is configured, with a
 user-client fallback. If the ledger write fails, the animal change is rolled
 back and a Bengali error is returned. No migration or new column is needed: the
-note marker is the link.
+note marker is the link. A built-in `পশু ক্রয়` label fallback keeps the row
+readable in ledger/reports even if the farm deactivated its category row.
 
 Quick status buttons are available in the desktop animal table, mobile cards
 and the animal detail page for `active`, `sick`, `sold`, `dead` and
@@ -305,6 +317,11 @@ available in the app top bar, settings, landing/auth/join pages, onboarding,
 `/farms/new` and route-state pages. It translates exact static text,
 placeholders, titles, ARIA labels and the document title. User-entered values
 and dynamic strings are left as authored.
+
+Both toggles switch synchronously: `setLanguage()` applies the DOM translation
+in the click handler, and the theme toggle flips the `dark` class in the same
+frame. Layout effects (not post-paint effects) keep React state and the DOM in
+sync on mount and across tabs, so there is no flash or delay in production.
 
 Dark is the default theme. The root layout emits the `dark` class and a
 pre-hydration script; an explicit saved `khamar-theme=light` still wins.

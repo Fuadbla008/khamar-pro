@@ -1,5 +1,6 @@
 import "server-only";
 
+import { TRANSACTION_CATEGORY_LABEL_FALLBACKS } from "@/lib/categories/fallback-labels";
 import { resolveDefinitions } from "@/lib/fields/resolve";
 import { slugifyFarmName } from "@/lib/export/filename";
 import { reportTab } from "@/lib/reports/constants";
@@ -103,7 +104,12 @@ export async function loadReportData(supabase, farmId, filters = {}) {
   if (transactionsResult.error) throw new Error("রিপোর্টের লেনদেন পড়া যায়নি");
 
   const categories = resolveDefinitions(categoryRows.data, farmId, "code");
-  const categoryLabels = new Map(categories.map((row) => [row.code, row.name_bn ?? row.code]));
+  const categoryLabels = new Map(
+    Object.entries(TRANSACTION_CATEGORY_LABEL_FALLBACKS)
+  );
+  for (const row of categories) {
+    categoryLabels.set(row.code, row.name_bn ?? row.code);
+  }
   const animals = animalRows.data ?? [];
   const animalMap = new Map(animals.map((row) => [row.id, row]));
   const animalCategoryLabels = new Map(

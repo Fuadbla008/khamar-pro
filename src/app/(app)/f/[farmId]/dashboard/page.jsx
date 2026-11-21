@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import Link from "next/link";
+import { connection } from "next/server";
 import {
   ChartNoAxesCombined,
   PawPrint,
@@ -45,6 +46,10 @@ export default function DashboardPage({ params }) {
 }
 
 async function DashboardContent({ params }) {
+  // Supabase Auth reads token expiry via Date.now(), and this route also uses
+  // the current date for month filters. Defer both to request time.
+  await connection();
+
   const { farmId } = await params;
   const { supabase } = await requireFarmAccess(farmId);
 

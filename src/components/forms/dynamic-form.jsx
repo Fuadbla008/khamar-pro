@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useDrafts } from "@/hooks/use-drafts";
@@ -33,6 +34,7 @@ export function DynamicForm({
     initialFieldValues(definitions, defaultValues)
   );
   const [localError, setLocalError] = useState(null);
+  const queryClient = useQueryClient();
   const { saveDraftFromForm } = useDrafts(undefined, { watch: false });
 
   async function persistDraft(formData) {
@@ -67,7 +69,13 @@ export function DynamicForm({
       try {
         return await action(previousState, formData);
       } catch (caught) {
-        if (isRedirectError(caught)) throw caught;
+        if (isRedirectError(caught)) {
+          // A redirect means the Server Action committed. TanStack Query keeps
+          // its cache across client navigations, so invalidate it here;
+          // otherwise the ledger/reports can show pre-submit data for 30s.
+          void queryClient.invalidateQueries().catch(() => undefined);
+          throw caught;
+        }
         await handleOfflineDraft(formData);
         return { error: OFFLINE_DRAFT_MESSAGE };
       }

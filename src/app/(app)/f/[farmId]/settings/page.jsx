@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { connection } from "next/server";
 import { GeneralSettings } from "@/components/domain/general-settings";
 import { SettingsShell } from "@/components/domain/settings-shell";
 import { can } from "@/lib/auth/can";
@@ -6,6 +7,7 @@ import { requireFarmAccess } from "@/lib/auth/require-farm-access";
 import { loadGeneralSettings } from "@/lib/settings/load";
 
 export const metadata = { title: "সাধারণ সেটিংস — Khamar" };
+export const instant = false;
 
 export default function SettingsPage({ params }) {
   return (
@@ -16,6 +18,10 @@ export default function SettingsPage({ params }) {
 }
 
 async function SettingsRoute({ params }) {
+  // Supabase Auth reads Date.now() for token expiry. Defer before auth so the
+  // value is computed at request time rather than during prerendering.
+  await connection();
+
   const { farmId } = await params;
   const { supabase, role, permissions } = await requireFarmAccess(farmId);
   const { farm, banglaDigits } = await loadGeneralSettings(supabase, farmId);

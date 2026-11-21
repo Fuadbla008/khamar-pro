@@ -6,6 +6,7 @@ const SKIP_TAGS = new Set(["SCRIPT", "STYLE", "NOSCRIPT", "TEXTAREA"]);
 
 let observer = null;
 let applying = false;
+let appliedLanguage = null;
 
 function dataKeyFor(attribute) {
   return `i18nOriginal${attribute.replace(/-([a-z])/g, (_, letter) =>
@@ -168,6 +169,12 @@ function createObserver() {
 /** Applies or removes the English DOM layer without touching source strings. */
 export function applyLanguage(language) {
   if (typeof document === "undefined") return;
+
+  // The click handler and the layout effect both call this for the same value.
+  // When the live observer is already handling that language, skip the second
+  // full-tree walk. Restore (Bangla) has no observer and stays idempotent.
+  if (observer && appliedLanguage === language) return;
+  appliedLanguage = language;
 
   if (observer) {
     observer.disconnect();

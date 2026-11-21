@@ -1,7 +1,7 @@
 /* Khamar service worker — dependency-free and Turbopack-safe. */
 
 const PREFIX = "khamar-";
-const VERSION = "v1";
+const VERSION = "v2";
 const SHELL_CACHE = `${PREFIX}${VERSION}-shell`;
 const ROUTE_CACHE = `${PREFIX}${VERSION}-routes`;
 const DATA_CACHE = `${PREFIX}${VERSION}-data`;
@@ -18,7 +18,10 @@ const SHELL_URLS = [
   "/icons/icon-maskable-512.png",
 ];
 
-const DATA_TIMEOUT_MS = 2500;
+// Only Supabase REST reads are cached. Auth endpoints and Next.js RSC payloads
+// must never be intercepted: a stale or synthetic 503 for those breaks the
+// router and leaves loading skeletons spinning forever.
+const SUPABASE_DATA_TIMEOUT_MS = 15000;
 const MAX_DATA_ENTRIES = 60;
 const MAX_ROUTE_ENTRIES = 40;
 
@@ -61,8 +64,8 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  if (isSupabase(url)) {
-    event.respondWith(networkFirstData(request));
+  if (isSupabaseData(url)) {
+    event.respondWith(networkFirstSupabaseData(request));
     return;
   }
   if (url.origin !== self.location.origin) return;
@@ -71,27 +74,15 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(networkFirstNavigation(request));
     return;
   }
-  if (isDataRequest(url, request)) {
-    event.respondWith(networkFirstData(request));
-    return;
-  }
   if (isStaticAsset(url)) {
     event.respondWith(staleWhileRevalidate(request));
   }
 });
 
-function isSupabase(url) {
-  return url.hostname === "supabase.co" || url.hostname.endsWith(".supabase.co");
-}
-
-function isDataRequest(url, request) {
-  return (
-    url.pathname.startsWith("/api/") ||
-    url.pathname.startsWith("/_next/data/") ||
-    url.searchParams.has("_rsc") ||
-    request.headers.get("RSC") === "1" ||
-    request.headers.get("Next-Router-Prefetch") === "1"
-  );
+function isSupabaseData(url) {
+  const host = url.hostname;
+  const isSupabaseHost = host === "supabase.co" || host.endsWith(".supabase.co");
+  return isSupabaseHost && url.pathname.startsWith("/rest/v1/");
 }
 
 function isStaticAsset(url) {
@@ -106,7 +97,10 @@ function isStaticAsset(url) {
 
 function fetchWithTimeout(request) {
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), DATA_TIMEOUT_MS);
+  const timer = setTimeout(
+    () => controller.abort(),
+    SUPABASE_DATA_TIMEOUT_MS
+  );
   return fetch(request, { signal: controller.signal }).finally(() =>
     clearTimeout(timer)
   );
@@ -148,7 +142,7 @@ async function networkFirstNavigation(request) {
   }
 }
 
-async function networkFirstData(request) {
+async function networkFirstSupabaseData(request) {
   const cache = await caches.open(DATA_CACHE);
   try {
     const response = await fetchWithTimeout(request);

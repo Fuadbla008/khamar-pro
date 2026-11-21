@@ -50,7 +50,7 @@ function sourceHref(record) {
 }
 
 export function ProductionView({ farmId, farmSlug, definitions }) {
-  const [filters] = useQueryStates({
+  const [filters, setFilters] = useQueryStates({
     tab: parseAsStringLiteral(PRODUCTION_TAB_VALUES).withDefault("all"),
   });
   const [newOpen, setNewOpen] = useState(false);

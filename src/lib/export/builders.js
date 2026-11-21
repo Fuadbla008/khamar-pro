@@ -662,6 +662,10 @@ export async function buildUserWiseExport(farmId, filters = {}) {
     );
   }
 
+  // System-generated expenses (animal purchases, production costs) have no
+  // paid_by. Without this bucket they are silently dropped from the export.
+  ensureGroup(null, "সদস্য নেই", "—");
+
   for (const row of transactionsResult.data ?? []) {
     const group = groups.get(row.paid_by ?? "none");
     if (!group) continue;

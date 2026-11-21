@@ -30,6 +30,7 @@ import {
   useTransactions,
   useUpdateTransaction,
 } from "@/hooks/use-transactions";
+import { TRANSACTION_CATEGORY_LABEL_FALLBACKS } from "@/lib/categories/fallback-labels";
 import { TYPE_LABELS } from "@/lib/transactions/constants";
 import { formatDate, formatMoney } from "@/lib/utils/format";
 
@@ -58,7 +59,8 @@ export function TransactionsView({ farmId, farmSlug, definitions, members, anima
   const isMutating = createMutation.isPending || updateMutation.isPending;
 
   const labelOf = (code) =>
-    categories.find((category) => category.code === code)?.name_bn;
+    categories.find((category) => category.code === code)?.name_bn ??
+    TRANSACTION_CATEGORY_LABEL_FALLBACKS[code];
 
   const income = transactions
     .filter((item) => item.type === "income")

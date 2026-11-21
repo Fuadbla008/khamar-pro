@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { connection } from "next/server";
 import { LanguageToggle } from "@/components/domain/language-toggle";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/server";
@@ -14,6 +15,9 @@ export default function LandingPage() {
 }
 
 async function LandingGate() {
+  // Supabase Auth reads Date.now() for token expiry; defer before prerender.
+  await connection();
+
   const supabase = await createClient();
   const {
     data: { user },

@@ -1,5 +1,7 @@
 import "server-only";
 
+import { TRANSACTION_CATEGORY_LABEL_FALLBACKS } from "./fallback-labels";
+
 // RLS already limits rows to globals plus the caller's farms, so a single
 // query is enough. Farm-scoped rows win over globals with the same code.
 export async function getCategoryLabels(supabase, farmId, entity) {
@@ -9,7 +11,11 @@ export async function getCategoryLabels(supabase, farmId, entity) {
     .eq("entity", entity)
     .is("deleted_at", null);
 
-  const labels = new Map();
+  const labels = new Map(
+    entity === "transaction"
+      ? Object.entries(TRANSACTION_CATEGORY_LABEL_FALLBACKS)
+      : []
+  );
 
   for (const row of data ?? []) {
     if (row.farm_id === null) {
