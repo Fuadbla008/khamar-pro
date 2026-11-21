@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { TransactionsView } from "@/components/domain/transactions-view";
 import { requireFarmAccess } from "@/lib/auth/require-farm-access";
+import { loadFarmSlug } from "@/lib/farms/context";
 import { loadTransactionDefinitions } from "@/lib/fields/load";
 
 export const metadata = { title: "লেনদেন — Khamar" };
@@ -17,7 +18,7 @@ async function TransactionsRoute({ params }) {
   const { farmId } = await params;
   const { supabase } = await requireFarmAccess(farmId);
 
-  const [definitions, membersResult, animalsResult] = await Promise.all([
+  const [definitions, membersResult, animalsResult, farmSlug] = await Promise.all([
     loadTransactionDefinitions(supabase, farmId),
     supabase
       .from("farm_members")
@@ -30,6 +31,7 @@ async function TransactionsRoute({ params }) {
       .eq("farm_id", farmId)
       .is("deleted_at", null)
       .order("tag_no", { ascending: true }),
+    loadFarmSlug(supabase, farmId),
   ]);
 
   const members = (membersResult.data ?? []).map((row) => ({
@@ -40,6 +42,7 @@ async function TransactionsRoute({ params }) {
   return (
     <TransactionsView
       farmId={farmId}
+      farmSlug={farmSlug}
       definitions={definitions}
       members={members}
       animals={animalsResult.data ?? []}

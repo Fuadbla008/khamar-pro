@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
+import { LanguageToggle } from "@/components/domain/language-toggle";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -12,6 +13,10 @@ export function JoinClient({ code }) {
   return (
     <form action={formAction} className="space-y-5">
       <input type="hidden" name="code" value={code} />
+
+      <div className="flex justify-end">
+        <LanguageToggle />
+      </div>
 
       <div className="space-y-2">
         <Label htmlFor="code">ইনভাইট কোড</Label>

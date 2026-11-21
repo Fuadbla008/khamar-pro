@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { NavLink } from "@/components/domain/nav-link";
 import {
   Ellipsis,
   HeartPulse,
@@ -25,7 +25,7 @@ import { MODULE_NAV, SECONDARY_NAV, farmPath } from "./nav-items";
 
 function Tab({ href, label, icon: Icon, active }) {
   return (
-    <Link
+    <NavLink
       href={href}
       aria-current={active ? "page" : undefined}
       className={cn(
@@ -35,7 +35,7 @@ function Tab({ href, label, icon: Icon, active }) {
     >
       <Icon className="size-5" />
       <span>{label}</span>
-    </Link>
+    </NavLink>
   );
 }
 
@@ -106,52 +106,52 @@ export function BottomTabs({ farmId, onOpenMore }) {
           </DialogHeader>
           <div className="space-y-3">
             <Button asChild className="press h-12 w-full rounded-input">
-              <Link
+              <NavLink
                 href={farmPath(farmId, "animals/new")}
                 onClick={() => setAddOpen(false)}
               >
                 <PawPrint className="size-4" />
                 নতুন পশু
-              </Link>
+              </NavLink>
             </Button>
             <Button
               asChild
               variant="outline"
               className="press h-12 w-full rounded-input"
             >
-              <Link
+              <NavLink
                 href={farmPath(farmId, "transactions")}
                 onClick={() => setAddOpen(false)}
               >
                 <Wallet className="size-4" />
                 নতুন লেনদেন
-              </Link>
+              </NavLink>
             </Button>
             <Button
               asChild
               variant="outline"
               className="press h-12 w-full rounded-input"
             >
-              <Link
+              <NavLink
                 href={farmPath(farmId, "inventory/new")}
                 onClick={() => setAddOpen(false)}
               >
                 <Package className="size-4" />
                 নতুন আইটেম
-              </Link>
+              </NavLink>
             </Button>
             <Button
               asChild
               variant="outline"
               className="press h-12 w-full rounded-input"
             >
-              <Link
+              <NavLink
                 href={farmPath(farmId, "health")}
                 onClick={() => setAddOpen(false)}
               >
                 <HeartPulse className="size-4" />
                 স্বাস্থ্য রেকর্ড
-              </Link>
+              </NavLink>
             </Button>
           </div>
         </DialogContent>

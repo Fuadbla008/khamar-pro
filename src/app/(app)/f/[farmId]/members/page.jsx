@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { MembersView } from "@/components/domain/members-view";
 import { requireFarmAccess } from "@/lib/auth/require-farm-access";
+import { loadFarmSlug } from "@/lib/farms/context";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export const metadata = { title: "সদস্য — Khamar" };
@@ -17,7 +18,7 @@ async function MembersRoute({ params }) {
   const { farmId } = await params;
   const { supabase, user, role, permissions } = await requireFarmAccess(farmId);
 
-  const [membersResult, expensesResult, invitesResult, joinResult] =
+  const [membersResult, expensesResult, invitesResult, joinResult, farmSlug] =
     await Promise.all([
       supabase
         .from("farm_members")
@@ -47,6 +48,7 @@ async function MembersRoute({ params }) {
         .is("deleted_at", null)
         .not("invite_id", "is", null)
         .order("joined_at", { ascending: false }),
+      loadFarmSlug(supabase, farmId),
     ]);
 
   const expenseCounts = {};
@@ -102,6 +104,7 @@ async function MembersRoute({ params }) {
   return (
     <MembersView
       farmId={farmId}
+      farmSlug={farmSlug}
       members={members}
       invites={invitesResult.data ?? []}
       joinLog={joinLog}

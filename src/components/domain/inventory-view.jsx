@@ -29,24 +29,9 @@ import {
   useInventoryItems,
 } from "@/hooks/use-inventory";
 import { formatMoney, formatQuantity, toBanglaDigits } from "@/lib/utils/format";
+import { ExportButton } from "./export-button";
 
-function exportCsv(items, categories) {
-  // Phase 5 will replace this with the shared export engine.
-  const labelOf = (code) =>
-    categories.find((category) => category.code === code)?.name_bn ?? code;
-  const rows = items.map((item) => ({
-    নাম: item.name_bn,
-    ক্যাটাগরি: labelOf(item.category_code),
-    একক: item.unit,
-    বর্তমান_স্টক: item.current_stock,
-    ন্যুনতম_স্টক: item.min_stock,
-    একক_মূল্য: item.unit_price ?? "",
-    মোট_মূল্য: Number(item.current_stock ?? 0) * Number(item.unit_price ?? 0),
-  }));
-  console.log("CSV export (Phase 5):", rows);
-}
-
-export function InventoryView({ farmId, definitions }) {
+export function InventoryView({ farmId, farmSlug, definitions }) {
   const [filters, setFilters] = useQueryStates({
     category: parseAsString.withDefault("all"),
   });
@@ -97,15 +82,14 @@ export function InventoryView({ farmId, definitions }) {
             </Badge>
           ) : null}
         </div>
-        <div className="flex shrink-0 items-center gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => exportCsv(items, categories)}
-            className="press h-11 rounded-input"
-          >
-            CSV
-          </Button>
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          <ExportButton
+            farmId={farmId}
+            farmSlug={farmSlug}
+            entity="inventory"
+            filename="inventory"
+            filters={{ category: filters.category }}
+          />
           <Button
             type="button"
             onClick={() => setNewOpen(true)}

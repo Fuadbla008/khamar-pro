@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
+import { LanguageToggle } from "@/components/domain/language-toggle";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,6 +13,9 @@ export function LoginForm({ next }) {
   return (
     <form action={formAction} className="space-y-4">
       <input type="hidden" name="next" value={next} />
+      <div className="flex justify-end">
+        <LanguageToggle />
+      </div>
 
       <div className="space-y-2">
         <Label htmlFor="email">ইমেইল</Label>

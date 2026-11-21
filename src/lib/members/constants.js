@@ -1,14 +1,15 @@
-// Built-in roles mirror the CHECK constraint on farm_members.role.
-// Permission keys mirror the second argument of is_farm_member().
+// Assignable roles in invite/update flows. Only `create_farm` makes an owner;
+// these flows must never offer or set `owner`.
 export const ROLES = [
-  { value: "owner", label: "মালিক" },
   { value: "manager", label: "ম্যানেজার" },
   { value: "member", label: "সদস্য" },
 ];
 
-export const ROLE_LABELS = Object.fromEntries(
-  ROLES.map((item) => [item.value, item.label])
-);
+// Keep the owner label for displaying existing owner memberships.
+export const ROLE_LABELS = {
+  owner: "মালিক",
+  ...Object.fromEntries(ROLES.map((item) => [item.value, item.label])),
+};
 
 export const PERMISSIONS = [
   { key: "can_manage_animals", label: "পশু ব্যবস্থাপনা" },

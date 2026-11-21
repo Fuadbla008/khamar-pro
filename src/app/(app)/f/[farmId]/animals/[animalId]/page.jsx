@@ -9,8 +9,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { AnimalStatusActions } from "@/components/domain/animal-status-actions";
 import { DetailTabs } from "@/components/domain/detail-tabs";
 import { EmptyState } from "@/components/domain/empty-state";
+import { FirstAnimalCelebration } from "@/components/domain/first-animal-celebration";
 import { HealthTimeline } from "@/components/domain/health-timeline";
 import { ConfirmSubmit } from "@/components/forms/confirm-submit";
 import { deleteAnimalAction } from "@/lib/animals/actions";
@@ -23,10 +25,10 @@ import { formatDate, formatMoney } from "@/lib/utils/format";
 
 export const metadata = { title: "পশুর বিবরণ — Khamar" };
 
-export default function AnimalDetailPage({ params }) {
+export default function AnimalDetailPage({ params, searchParams }) {
   return (
     <Suspense fallback={<div className="m-4 h-96 animate-pulse rounded-card bg-muted" />}>
-      <AnimalDetailRoute params={params} />
+      <AnimalDetailRoute params={params} searchParams={searchParams} />
     </Suspense>
   );
 }
@@ -47,8 +49,9 @@ function DetailRow({ label, value }) {
   );
 }
 
-async function AnimalDetailRoute({ params }) {
-  const { farmId, animalId } = await params;
+async function AnimalDetailRoute({ params, searchParams }) {
+  const [{ farmId, animalId }, query] = await Promise.all([params, searchParams]);
+  const celebrateFirstAnimal = query?.first === "1";
   const { supabase } = await requireFarmAccess(farmId);
 
   const [
@@ -193,6 +196,7 @@ async function AnimalDetailRoute({ params }) {
 
   return (
     <main className="mx-auto w-full max-w-2xl space-y-6 px-4 py-6 md:px-8 md:py-10">
+      <FirstAnimalCelebration trigger={celebrateFirstAnimal} />
       <DetailTabs
         tabs={[
           { key: "details", label: "বিবরণ", content: detailsPanel },
@@ -209,6 +213,13 @@ async function AnimalDetailRoute({ params }) {
         <Button asChild variant="outline" className="press h-11 rounded-input">
           <Link href={`/f/${farmId}/animals`}>তালিকায় ফিরুন</Link>
         </Button>
+        <AnimalStatusActions
+          farmId={farmId}
+          animalId={animal.id}
+          status={animal.status}
+          tagNo={animal.tag_no}
+          variant="detail"
+        />
         <form action={deleteAnimalAction}>
           <input type="hidden" name="farmId" value={farmId} />
           <input type="hidden" name="animalId" value={animal.id} />

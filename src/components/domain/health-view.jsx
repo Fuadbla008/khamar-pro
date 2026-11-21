@@ -10,6 +10,7 @@ import { Plus } from "lucide-react";
 import { cn } from "cn";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/domain/empty-state";
+import { ExportButton } from "@/components/domain/export-button";
 import { HealthTimeline } from "@/components/domain/health-timeline";
 import { ResponsiveModal } from "@/components/domain/responsive-modal";
 import { HealthForm } from "@/components/forms/health-form";
@@ -27,7 +28,7 @@ import {
   HEALTH_TAB_VALUES,
 } from "@/lib/health/constants";
 
-export function HealthView({ farmId, definitions }) {
+export function HealthView({ farmId, farmSlug, definitions }) {
   const [filters, setFilters] = useQueryStates({
     tab: parseAsStringLiteral(HEALTH_TAB_VALUES).withDefault("all"),
     filter: parseAsStringLiteral(["all", "due"]).withDefault("all"),
@@ -76,14 +77,23 @@ export function HealthView({ farmId, definitions }) {
             </Link>
           ) : null}
         </div>
-        <Button
-          type="button"
-          onClick={() => setNewOpen(true)}
-          className="press hidden h-11 rounded-input sm:inline-flex"
-        >
-          <Plus className="size-4" />
-          নতুন রেকর্ড
-        </Button>
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          <ExportButton
+            farmId={farmId}
+            farmSlug={farmSlug}
+            entity="health"
+            filename="health"
+            filters={{ tab: filters.tab, filter: filters.filter }}
+          />
+          <Button
+            type="button"
+            onClick={() => setNewOpen(true)}
+            className="press hidden h-11 rounded-input sm:inline-flex"
+          >
+            <Plus className="size-4" />
+            নতুন রেকর্ড
+          </Button>
+        </div>
       </div>
 
       <div className="flex gap-2 overflow-x-auto pb-1" aria-label="স্বাস্থ্যের ধরন">

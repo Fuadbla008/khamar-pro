@@ -2,7 +2,6 @@ import { Suspense } from "react";
 import Link from "next/link";
 import {
   ChartNoAxesCombined,
-  Milk,
   PawPrint,
   Scale,
   Wallet,
@@ -14,20 +13,18 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { EmptyState } from "@/components/domain/empty-state";
+import { ExportButton } from "@/components/domain/export-button";
+import { TutorialOverlay } from "@/components/domain/tutorial-overlay";
 import { KpiCard } from "@/components/domain/kpi-card";
 import { TransactionRow } from "@/components/domain/transaction-row";
 import { requireFarmAccess } from "@/lib/auth/require-farm-access";
 import { getCategoryLabels } from "@/lib/categories/labels";
+import { loadFarmSlug } from "@/lib/farms/context";
 import { dueWindowDates } from "@/lib/health/constants";
 import { banglaDigitsFromSettings } from "@/lib/settings/display";
 import { formatDate, formatMoney, toBanglaDigits } from "@/lib/utils/format";
 
 export const metadata = { title: "ড্যাশবোর্ড — Khamar" };
-
-const COMING_SOON = [
-  { label: "উৎপাদন", icon: Milk },
-  { label: "রিপোর্ট", icon: ChartNoAxesCombined },
-];
 
 function isoDate(date) {
   const year = date.getFullYear();
@@ -38,9 +35,12 @@ function isoDate(date) {
 
 export default function DashboardPage({ params }) {
   return (
-    <Suspense fallback={<DashboardSkeleton />}>
-      <DashboardContent params={params} />
-    </Suspense>
+    <>
+      <Suspense fallback={<DashboardSkeleton />}>
+        <DashboardContent params={params} />
+      </Suspense>
+      <TutorialOverlay />
+    </>
   );
 }
 
@@ -62,6 +62,7 @@ async function DashboardContent({ params }) {
     inventoryResult,
     dueResult,
     sickResult,
+    farmSlug,
   ] = await Promise.all([
       supabase
         .from("animals")
@@ -107,6 +108,7 @@ async function DashboardContent({ params }) {
         .eq("farm_id", farmId)
         .eq("status", "sick")
         .is("deleted_at", null),
+      loadFarmSlug(supabase, farmId),
     ]);
 
   const banglaDigits = banglaDigitsFromSettings(settingsResult.data);
@@ -128,27 +130,36 @@ async function DashboardContent({ params }) {
 
   return (
     <main className="mx-auto w-full max-w-7xl space-y-6 px-4 py-6 md:px-8 md:py-10">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">ড্যাশবোর্ড</h1>
-        <p className="text-sm text-muted-foreground">আপনার খামারের আজকের হিসাব</p>
-        <div className="mt-3 flex flex-wrap gap-2">
-          {lowStockCount ? (
-            <Link
-              href={`/f/${farmId}/inventory`}
-              className="press inline-flex min-h-9 items-center rounded-pill border border-destructive/30 bg-destructive/10 px-3 text-xs font-semibold text-destructive"
-            >
-              ⚠ {banglaDigits ? toBanglaDigits(lowStockCount) : lowStockCount} টি স্টক কম
-            </Link>
-          ) : null}
-          {sickCount ? (
-            <Link
-              href={`/f/${farmId}/animals?status=sick`}
-              className="press inline-flex min-h-9 items-center rounded-pill border border-destructive/30 bg-destructive/10 px-3 text-xs font-semibold text-destructive"
-            >
-              🩺 {banglaDigits ? toBanglaDigits(sickCount) : sickCount} টি পশু অসুস্থ
-            </Link>
-          ) : null}
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">ড্যাশবোর্ড</h1>
+          <p className="text-sm text-muted-foreground">আপনার খামারের আজকের হিসাব</p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {lowStockCount ? (
+              <Link
+                href={`/f/${farmId}/inventory`}
+                className="press inline-flex min-h-9 items-center rounded-pill border border-destructive/30 bg-destructive/10 px-3 text-xs font-semibold text-destructive"
+              >
+                ⚠ {banglaDigits ? toBanglaDigits(lowStockCount) : lowStockCount} টি স্টক কম
+              </Link>
+            ) : null}
+            {sickCount ? (
+              <Link
+                href={`/f/${farmId}/animals?status=sick`}
+                className="press inline-flex min-h-9 items-center rounded-pill border border-destructive/30 bg-destructive/10 px-3 text-xs font-semibold text-destructive"
+              >
+                🩺 {banglaDigits ? toBanglaDigits(sickCount) : sickCount} টি পশু অসুস্থ
+              </Link>
+            ) : null}
+          </div>
         </div>
+        <Link
+          href={`/f/${farmId}/reports`}
+          className="press inline-flex min-h-11 items-center gap-2 rounded-input bg-primary px-4 text-sm font-semibold text-primary-foreground"
+        >
+          <ChartNoAxesCombined className="size-4" />
+          রিপোর্ট দেখুন
+        </Link>
       </div>
 
       <section
@@ -237,20 +248,44 @@ async function DashboardContent({ params }) {
         </CardContent>
       </Card>
 
-      <section aria-label="শীঘ্রই আসছে" className="space-y-2">
-        <p className="text-xs font-medium text-muted-foreground">শীঘ্রই আসছে</p>
-        <div className="flex flex-wrap gap-2">
-          {COMING_SOON.map(({ label, icon: Icon }) => (
-            <span
-              key={label}
-              className="inline-flex items-center gap-1.5 rounded-pill border border-border bg-muted px-3 py-1.5 text-xs text-muted-foreground"
-            >
-              <Icon className="size-3.5" />
-              {label}
-            </span>
-          ))}
-        </div>
-      </section>
+      <Card className="rounded-card shadow-soft">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base">রিপোর্ট ডাউনলোড</CardTitle>
+        </CardHeader>
+        <CardContent className="grid gap-4 sm:grid-cols-3">
+          <div className="space-y-2">
+            <p className="text-xs font-semibold text-muted-foreground">খামারের সারসংক্ষেপ</p>
+            <ExportButton
+              farmId={farmId}
+              farmSlug={farmSlug}
+              entity="farm-summary"
+              filename="farm_summary"
+              filters={{ from: monthStart, to: monthEnd }}
+            />
+          </div>
+          <div className="space-y-2">
+            <p className="text-xs font-semibold text-muted-foreground">সদস্য অনুযায়ী</p>
+            <ExportButton
+              farmId={farmId}
+              farmSlug={farmSlug}
+              entity="user-wise"
+              filename="user_wise"
+              filters={{ from: monthStart, to: monthEnd }}
+            />
+          </div>
+          <div className="space-y-2">
+            <p className="text-xs font-semibold text-muted-foreground">ক্যাটাগরি অনুযায়ী</p>
+            <ExportButton
+              farmId={farmId}
+              farmSlug={farmSlug}
+              entity="category-wise"
+              filename="category_wise"
+              filters={{ from: monthStart, to: monthEnd }}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
     </main>
   );
 }

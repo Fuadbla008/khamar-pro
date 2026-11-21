@@ -1,10 +1,22 @@
 "use client";
 
 import { useActionState, useState } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { useDrafts } from "@/hooks/use-drafts";
 import { cleanFieldValues, initialFieldValues } from "@/lib/fields/resolve";
 import { schemaFromFields } from "@/lib/fields/schema";
+import { formDataToObject } from "@/lib/drafts/serialize";
 import { FieldRenderer } from "./field-renderer";
+
+const OFFLINE_DRAFT_MESSAGE = "ইন্টারনেট নেই — ড্রাফটে সেভ হয়েছে";
+const DRAFT_SAVE_FAILED_MESSAGE = "ড্রাফট সেভ করা যায়নি, আবার চেষ্টা করুন";
+
+function isRedirectError(error) {
+  return (
+    typeof error?.digest === "string" && error.digest.includes("NEXT_REDIRECT")
+  );
+}
 
 export function DynamicForm({
   action,
@@ -14,14 +26,56 @@ export function DynamicForm({
   submitLabel = "সংরক্ষণ করুন",
   pendingLabel = "অপেক্ষা করুন...",
   disabled = false,
+  draftEntity,
+  onOfflineDraft,
 }) {
-  const [state, formAction, pending] = useActionState(action, null);
   const [values, setValues] = useState(() =>
     initialFieldValues(definitions, defaultValues)
   );
   const [localError, setLocalError] = useState(null);
+  const { saveDraftFromForm } = useDrafts(undefined, { watch: false });
 
-  function handleSubmit(event) {
+  async function persistDraft(formData) {
+    const payload = formDataToObject(formData);
+
+    try {
+      if (typeof onOfflineDraft === "function") {
+        await onOfflineDraft(payload);
+      } else if (draftEntity) {
+        await saveDraftFromForm(draftEntity, payload);
+      } else {
+        return false;
+      }
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async function handleOfflineDraft(formData) {
+    const saved = await persistDraft(formData);
+    if (saved) {
+      toast(OFFLINE_DRAFT_MESSAGE);
+    } else {
+      toast.error(DRAFT_SAVE_FAILED_MESSAGE);
+    }
+    return saved;
+  }
+
+  const [state, formAction, pending] = useActionState(
+    async (previousState, formData) => {
+      try {
+        return await action(previousState, formData);
+      } catch (caught) {
+        if (isRedirectError(caught)) throw caught;
+        await handleOfflineDraft(formData);
+        return { error: OFFLINE_DRAFT_MESSAGE };
+      }
+    },
+    null
+  );
+
+  async function handleSubmit(event) {
     event.preventDefault();
 
     const cleaned = cleanFieldValues(values);
@@ -33,7 +87,14 @@ export function DynamicForm({
     }
 
     setLocalError(null);
-    formAction(new FormData(event.currentTarget));
+    const formData = new FormData(event.currentTarget);
+
+    if (typeof navigator !== "undefined" && navigator.onLine === false) {
+      await handleOfflineDraft(formData);
+      return;
+    }
+
+    formAction(formData);
   }
 
   return (

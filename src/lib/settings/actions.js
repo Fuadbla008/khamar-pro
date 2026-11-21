@@ -28,6 +28,9 @@ function revalidateSettings(farmId) {
     `/f/${farmId}/transactions`,
     `/f/${farmId}/inventory`,
     `/f/${farmId}/health`,
+    `/f/${farmId}/reports`,
+    `/f/${farmId}/members`,
+    `/f/${farmId}/drafts`,
   ]) {
     revalidatePath(path);
   }

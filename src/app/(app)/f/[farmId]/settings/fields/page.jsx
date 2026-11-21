@@ -37,7 +37,7 @@ async function FieldsSettingsRoute({ params }) {
     <SettingsShell
       farmId={farmId}
       title="অতিরিক্ত ঘর ব্যবস্থাপনা"
-      description="প্রাণী, লেনদেন, ইনভেন্টরি ও স্বাস্থ্যে আপনার নিজস্ব তথ্যের ঘর যোগ করুন"
+      description="পশু, লেনদেন, ইনভেন্টরি, স্বাস্থ্য ও উৎপাদনে আপনার নিজস্ব তথ্যের ঘর যোগ করুন"
     >
       <FieldsManager
         farmId={farmId}

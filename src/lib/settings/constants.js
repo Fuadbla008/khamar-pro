@@ -1,15 +1,16 @@
 // Entities whose categories and custom fields the owner can manage in the UI.
-// Production stays visible as a locked, coming-soon chip.
+// All production configuration (including custom fields) is now live.
 export const CONFIGURABLE_ENTITIES = [
   { value: "animal", label: "পশু" },
   { value: "transaction", label: "লেনদেন" },
   { value: "inventory", label: "ইনভেন্টরি" },
   { value: "health", label: "স্বাস্থ্য" },
-];
-
-export const COMING_SOON_ENTITIES = [
   { value: "production", label: "উৎপাদন" },
 ];
+
+// Kept as an empty array so the settings UI can keep rendering the
+// "শীঘ্রই" section slot without hardcoding a special case.
+export const COMING_SOON_ENTITIES = [];
 
 export const ENTITY_LABELS = Object.fromEntries(
   [...CONFIGURABLE_ENTITIES, ...COMING_SOON_ENTITIES].map((item) => [

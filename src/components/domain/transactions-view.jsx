@@ -20,6 +20,7 @@ import { KpiCard } from "@/components/domain/kpi-card";
 import { EmptyState } from "@/components/domain/empty-state";
 import { TransactionEditor } from "@/components/domain/transaction-editor";
 import { TransactionRow } from "@/components/domain/transaction-row";
+import { ExportButton } from "@/components/domain/export-button";
 import { useBanglaDigits } from "@/hooks/use-display-settings";
 import { useIsDesktop } from "@/hooks/use-is-desktop";
 import { useCategories } from "@/hooks/use-categories";
@@ -32,7 +33,7 @@ import {
 import { TYPE_LABELS } from "@/lib/transactions/constants";
 import { formatDate, formatMoney } from "@/lib/utils/format";
 
-export function TransactionsView({ farmId, definitions, members, animals }) {
+export function TransactionsView({ farmId, farmSlug, definitions, members, animals }) {
   const [filters, setFilters] = useQueryStates({
     from: parseAsString.withDefault(""),
     to: parseAsString.withDefault(""),
@@ -128,9 +129,24 @@ export function TransactionsView({ farmId, definitions, members, animals }) {
             খামারের সব আয় ও খরচ এক জায়গায়
           </p>
         </div>
-        <Button onClick={openNew} className="press h-11 rounded-input">
-          + নতুন লেনদেন
-        </Button>
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          <ExportButton
+            farmId={farmId}
+            farmSlug={farmSlug}
+            entity="transactions"
+            filename="transactions"
+            filters={{
+              from: filters.from,
+              to: filters.to,
+              type: filters.type,
+              category: filters.category,
+              paidBy: filters.paidBy,
+            }}
+          />
+          <Button onClick={openNew} className="press h-11 rounded-input">
+            + নতুন লেনদেন
+          </Button>
+        </div>
       </div>
 
       <section

@@ -1,5 +1,6 @@
 import {
   ChartNoAxesCombined,
+  FileClock,
   HeartPulse,
   LayoutDashboard,
   Milk,
@@ -19,6 +20,7 @@ export const PRIMARY_NAV = [
 
 export const SECONDARY_NAV = [
   { href: "members", label: "সদস্য", icon: Users },
+  { href: "drafts", label: "ড্রাফট", icon: FileClock },
   { href: "settings", label: "সেটিংস", icon: Settings },
 ];
 
@@ -26,12 +28,12 @@ export const SECONDARY_NAV = [
 export const MODULE_NAV = [
   { href: "inventory", label: "ইনভেন্টরি", icon: Package },
   { href: "health", label: "স্বাস্থ্য", icon: HeartPulse },
+  { href: "production", label: "উৎপাদন", icon: Milk },
+  { href: "reports", label: "রিপোর্ট", icon: ChartNoAxesCombined },
 ];
 
-export const COMING_SOON_NAV = [
-  { label: "উৎপাদন", icon: Milk },
-  { label: "রিপোর্ট", icon: ChartNoAxesCombined },
-];
+// Reserved for future modules; the drawer/sidebar hide the section when empty.
+export const COMING_SOON_NAV = [];
 
 export const ALL_NAV = [...PRIMARY_NAV, ...MODULE_NAV, ...SECONDARY_NAV];
 

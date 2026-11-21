@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { createContext, useContext, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Check, ChevronsUpDown } from "lucide-react";
+import { Check, ChevronsUpDown, Plus } from "lucide-react";
 import { cn } from "cn";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,8 +15,19 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 
+const FarmOwnerContext = createContext(false);
+
+export function FarmOwnerProvider({ isOwner = false, children }) {
+  return (
+    <FarmOwnerContext.Provider value={isOwner}>
+      {children}
+    </FarmOwnerContext.Provider>
+  );
+}
+
 export function FarmSwitcher({ farmId, farms }) {
   const router = useRouter();
+  const canAddFarm = useContext(FarmOwnerContext);
   const [open, setOpen] = useState(false);
   const current = farms.find((farm) => farm.id === farmId);
 
@@ -76,6 +88,18 @@ export function FarmSwitcher({ farmId, farms }) {
             </li>
           ))}
         </ul>
+        {canAddFarm ? (
+          <Button
+            asChild
+            variant="outline"
+            className="press mt-2 h-11 w-full rounded-input"
+          >
+            <Link href="/farms/new" onClick={() => setOpen(false)}>
+              <Plus className="size-4" />
+              নতুন খামার
+            </Link>
+          </Button>
+        ) : null}
       </DialogContent>
     </Dialog>
   );

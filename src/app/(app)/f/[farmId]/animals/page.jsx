@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { AnimalsView } from "@/components/domain/animals-view";
 import { requireFarmAccess } from "@/lib/auth/require-farm-access";
+import { loadFarmSlug } from "@/lib/farms/context";
 
 export const metadata = { title: "পশু — Khamar" };
 
@@ -14,6 +15,7 @@ export default function AnimalsPage({ params }) {
 
 async function AnimalsRoute({ params }) {
   const { farmId } = await params;
-  await requireFarmAccess(farmId);
-  return <AnimalsView farmId={farmId} />;
+  const { supabase } = await requireFarmAccess(farmId);
+  const farmSlug = await loadFarmSlug(supabase, farmId);
+  return <AnimalsView farmId={farmId} farmSlug={farmSlug} />;
 }

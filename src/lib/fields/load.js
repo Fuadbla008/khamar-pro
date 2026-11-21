@@ -28,3 +28,7 @@ export function loadInventoryDefinitions(supabase, farmId) {
 export function loadHealthDefinitions(supabase, farmId) {
   return loadDefinitions(supabase, farmId, "health");
 }
+
+export function loadProductionDefinitions(supabase, farmId) {
+  return loadDefinitions(supabase, farmId, "production");
+}

@@ -1,9 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ChevronsLeft, ChevronsRight, Lock } from "lucide-react";
 import { cn } from "cn";
+import { NavLink } from "@/components/domain/nav-link";
 import { Button } from "@/components/ui/button";
 import {
   COMING_SOON_NAV,
@@ -27,7 +27,7 @@ function NavGroup({ title, items, farmId, pathname, collapsed }) {
         const Icon = item.icon;
 
         return (
-          <Link
+          <NavLink
             key={item.href}
             href={href}
             title={collapsed ? item.label : undefined}
@@ -42,7 +42,7 @@ function NavGroup({ title, items, farmId, pathname, collapsed }) {
           >
             <Icon className="size-5 shrink-0" />
             {!collapsed ? <span className="truncate">{item.label}</span> : null}
-          </Link>
+          </NavLink>
         );
       })}
     </div>
@@ -96,34 +96,36 @@ export function Sidebar({ farmId, collapsed, onToggle }) {
           collapsed={collapsed}
         />
 
-        <div className="space-y-1">
-          {!collapsed ? (
-            <p className="px-3 pb-1 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-              শীঘ্রই আসছে
-            </p>
-          ) : null}
-          {COMING_SOON_NAV.map((item) => {
-            const Icon = item.icon;
-            return (
-              <div
-                key={item.label}
-                title={collapsed ? `${item.label} — শীঘ্রই আসছে` : undefined}
-                className={cn(
-                  "flex min-h-11 items-center gap-3 rounded-input px-3 text-sm text-muted-foreground/60",
-                  collapsed && "justify-center px-0"
-                )}
-              >
-                <Icon className="size-5 shrink-0" />
-                {!collapsed ? (
-                  <>
-                    <span className="truncate">{item.label}</span>
-                    <Lock className="ml-auto size-3.5 shrink-0" />
-                  </>
-                ) : null}
-              </div>
-            );
-          })}
-        </div>
+        {COMING_SOON_NAV.length ? (
+          <div className="space-y-1">
+            {!collapsed ? (
+              <p className="px-3 pb-1 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                শীঘ্রই আসছে
+              </p>
+            ) : null}
+            {COMING_SOON_NAV.map((item) => {
+              const Icon = item.icon;
+              return (
+                <div
+                  key={item.label}
+                  title={collapsed ? `${item.label} — শীঘ্রই আসছে` : undefined}
+                  className={cn(
+                    "flex min-h-11 items-center gap-3 rounded-input px-3 text-sm text-muted-foreground/60",
+                    collapsed && "justify-center px-0"
+                  )}
+                >
+                  <Icon className="size-5 shrink-0" />
+                  {!collapsed ? (
+                    <>
+                      <span className="truncate">{item.label}</span>
+                      <Lock className="ml-auto size-3.5 shrink-0" />
+                    </>
+                  ) : null}
+                </div>
+              );
+            })}
+          </div>
+        ) : null}
       </nav>
 
       <div className="shrink-0 border-t border-border p-3">

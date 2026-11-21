@@ -243,15 +243,12 @@ function MoveButton({ farmId, entity, fieldKey, direction, disabled, label }) {
   );
 }
 
+const FIELD_ENTITY_VALUES = CONFIGURABLE_ENTITIES.map((item) => item.value);
+
 export function FieldsManager({ farmId, rowsByEntity, totalByEntity, canManage }) {
   const isDesktop = useIsDesktop();
   const [filters, setFilters] = useQueryStates({
-    entity: parseAsStringLiteral([
-      "animal",
-      "transaction",
-      "inventory",
-      "health",
-    ]).withDefault("animal"),
+    entity: parseAsStringLiteral(FIELD_ENTITY_VALUES).withDefault("animal"),
   });
   const [editing, setEditing] = useState(null);
   const entity = filters.entity;

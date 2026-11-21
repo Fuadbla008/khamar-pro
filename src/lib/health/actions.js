@@ -228,55 +228,84 @@ export async function deleteHealthRecordAction(formData) {
   revalidateHealth(farmId, null, null);
 }
 
-// Quick actions from the animal card/table. The status change and the health
-// record are two writes; the record is the audit trail for that status change.
-async function setAnimalStatus(formData, status, type, title) {
+// Quick actions from the animal card/table. Sick and death keep an audit row
+// in health_records; the other statuses are plain animal updates because the
+// health type CHECK constraint has no room for them (and no migration here).
+async function setAnimalStatus(formData, status, audit) {
   const farmId = String(formData.get("farmId") ?? "");
   const animalId = String(formData.get("animalId") ?? "");
-  if (!farmId || !animalId) return;
+  if (!farmId || !animalId) return { error: "পশু খুঁজে পাওয়া যায়নি" };
 
   const { supabase, user } = await requireFarmAccess(farmId);
 
   const { data: animal } = await supabase
     .from("animals")
-    .select("id, tag_no")
+    .select("id, tag_no, status")
     .eq("id", animalId)
     .eq("farm_id", farmId)
     .is("deleted_at", null)
     .maybeSingle();
 
-  if (!animal) return;
+  if (!animal) return { error: "পশু খুঁজে পাওয়া যায়নি" };
 
-  await supabase
+  const { error } = await supabase
     .from("animals")
     .update({ status })
     .eq("id", animalId)
-    .eq("farm_id", farmId);
+    .eq("farm_id", farmId)
+    .is("deleted_at", null);
 
-  await supabase.from("health_records").insert({
-    farm_id: farmId,
-    animal_id: animalId,
-    type,
-    title: `${title} — ${animal.tag_no}`,
-    medicine_item_id: null,
-    dosage: null,
-    notes: null,
-    date: localToday(),
-    next_due_date: null,
-    cost: 0,
-    created_by: user.id,
-    template_id: null,
-    is_done: true,
-    custom_fields: {},
-  });
+  if (error) return { error: "অবস্থা হালনাগাদ করা যায়নি" };
+
+  if (audit) {
+    const { error: auditError } = await supabase.from("health_records").insert({
+      farm_id: farmId,
+      animal_id: animalId,
+      type: audit.type,
+      title: `${audit.title} — ${animal.tag_no}`,
+      medicine_item_id: null,
+      dosage: null,
+      notes: null,
+      date: localToday(),
+      next_due_date: null,
+      cost: 0,
+      created_by: user.id,
+      template_id: null,
+      is_done: true,
+      custom_fields: {},
+    });
+
+    if (auditError) {
+      // Keep the animal and its audit trail consistent on a failed write.
+      await supabase
+        .from("animals")
+        .update({ status: animal.status })
+        .eq("id", animalId)
+        .eq("farm_id", farmId);
+      return { error: "স্বাস্থ্য রেকর্ড যোগ করা যায়নি" };
+    }
+  }
 
   revalidateHealth(farmId, null, animalId);
+  return { ok: true };
+}
+
+export async function markAnimalActiveAction(formData) {
+  return setAnimalStatus(formData, "active");
 }
 
 export async function markAnimalSickAction(formData) {
-  await setAnimalStatus(formData, "sick", "sick", "অসুস্থতা");
+  return setAnimalStatus(formData, "sick", { type: "sick", title: "অসুস্থতা" });
 }
 
 export async function markAnimalDeadAction(formData) {
-  await setAnimalStatus(formData, "dead", "death", "মৃত্যু");
+  return setAnimalStatus(formData, "dead", { type: "death", title: "মৃত্যু" });
+}
+
+export async function markAnimalSoldAction(formData) {
+  return setAnimalStatus(formData, "sold");
+}
+
+export async function markAnimalTransferredAction(formData) {
+  return setAnimalStatus(formData, "transferred");
 }

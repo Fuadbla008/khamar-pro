@@ -14,6 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ExportButton } from "@/components/domain/export-button";
 import { ConfirmSubmit } from "@/components/forms/confirm-submit";
 import {
   createInviteAction,
@@ -158,7 +159,7 @@ function MemberEditForm({ farmId, member, setEditing, router }) {
         <RoleSelect
           name="role"
           id="member-role"
-          defaultValue={member.role}
+          defaultValue={member.role === "owner" ? "member" : member.role}
         />
       </div>
 
@@ -183,6 +184,7 @@ function MemberEditForm({ farmId, member, setEditing, router }) {
 
 export function MembersView({
   farmId,
+  farmSlug,
   members,
   invites,
   joinLog,
@@ -207,14 +209,23 @@ export function MembersView({
             খামারে কে কে কাজ করছেন এবং কীভাবে যোগ দিয়েছেন
           </p>
         </div>
-        {isOwner || canManageMembers ? (
-          <Button
-            onClick={() => setInviteOpen(true)}
-            className="press h-11 rounded-input"
-          >
-            + সদস্য যোগ করুন
-          </Button>
-        ) : null}
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          <ExportButton
+            farmId={farmId}
+            farmSlug={farmSlug}
+            entity="members"
+            filename="members"
+            label="CSV"
+          />
+          {isOwner || canManageMembers ? (
+            <Button
+              onClick={() => setInviteOpen(true)}
+              className="press h-11 rounded-input"
+            >
+              + সদস্য যোগ করুন
+            </Button>
+          ) : null}
+        </div>
       </div>
 
       <section className="space-y-3">

@@ -1,7 +1,5 @@
 "use client";
 
-import { useTransition } from "react";
-import { useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import {
   parseAsString,
@@ -31,14 +29,12 @@ import { useBanglaDigits } from "@/hooks/use-display-settings";
 import { useCategories } from "@/hooks/use-categories";
 import { formatMoney } from "@/lib/utils/format";
 import { STATUS_LABELS } from "@/lib/animals/constants";
-import {
-  markAnimalDeadAction,
-  markAnimalSickAction,
-} from "@/lib/health/actions";
 import { AnimalCard } from "./animal-card";
+import { AnimalStatusActions } from "./animal-status-actions";
 import { EmptyState } from "./empty-state";
+import { ExportButton } from "./export-button";
 
-export function AnimalsView({ farmId }) {
+export function AnimalsView({ farmId, farmSlug }) {
   const [filters, setFilters] = useQueryStates({
     q: parseAsString.withDefault(""),
     category: parseAsString.withDefault("all"),
@@ -52,8 +48,6 @@ export function AnimalsView({ farmId }) {
     ]).withDefault("all"),
   });
 
-  const queryClient = useQueryClient();
-  const [statusPending, startTransition] = useTransition();
   const { data: categories = [] } = useCategories(farmId, "animal");
   const animalsQuery = useAnimals(farmId, filters);
   const deleteMutation = useSoftDeleteAnimal(farmId, filters);
@@ -68,34 +62,6 @@ export function AnimalsView({ farmId }) {
     deleteMutation.mutate(animal.id);
   }
 
-  function handleStatus(action, animal, message) {
-    if (!window.confirm(message)) return;
-    const data = new FormData();
-    data.set("farmId", farmId);
-    data.set("animalId", animal.id);
-    startTransition(async () => {
-      await action(data);
-      queryClient.invalidateQueries({ queryKey: ["animals", farmId] });
-      queryClient.invalidateQueries({ queryKey: ["health", farmId] });
-    });
-  }
-
-  function handleSick(animal) {
-    handleStatus(
-      markAnimalSickAction,
-      animal,
-      `${animal.tag_no} কে অসুস্থ হিসেবে চিহ্নিত করবেন?`
-    );
-  }
-
-  function handleDead(animal) {
-    handleStatus(
-      markAnimalDeadAction,
-      animal,
-      `${animal.tag_no} কে মৃত হিসেবে চিহ্নিত করবেন?`
-    );
-  }
-
   return (
     <main className="mx-auto w-full max-w-7xl space-y-6 px-4 py-6 md:px-8 md:py-10">
       <div className="flex items-center justify-between gap-3">
@@ -105,9 +71,22 @@ export function AnimalsView({ farmId }) {
             আপনার খামারের সব পশু এক জায়গায়
           </p>
         </div>
-        <Button asChild className="press h-11 rounded-input">
-          <Link href={`/f/${farmId}/animals/new`}>+ নতুন পশু</Link>
-        </Button>
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          <ExportButton
+            farmId={farmId}
+            farmSlug={farmSlug}
+            entity="animals"
+            filename="animals"
+            filters={{
+              q: filters.q,
+              category: filters.category,
+              status: filters.status,
+            }}
+          />
+          <Button asChild className="press h-11 rounded-input">
+            <Link href={`/f/${farmId}/animals/new`}>+ নতুন পশু</Link>
+          </Button>
+        </div>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-3">
@@ -196,11 +175,10 @@ export function AnimalsView({ farmId }) {
             {animals.map((animal) => (
               <AnimalCard
                 key={animal.id}
+                farmId={farmId}
                 animal={animal}
                 categoryLabel={labelOf(animal.category_code)}
                 onDelete={handleDelete}
-                onSick={handleSick}
-                onDead={handleDead}
                 banglaDigits={banglaDigits}
               />
             ))}
@@ -240,37 +218,20 @@ export function AnimalsView({ farmId }) {
                         : "—"}
                     </TableCell>
                     <TableCell className="text-right">
-                      <div className="flex justify-end gap-1">
-                        {animal.status !== "dead" ? (
-                          <>
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              disabled={statusPending}
-                              onClick={() => handleSick(animal)}
-                              className="press min-h-11 text-xs"
-                            >
-                              অসুস্থ
-                            </Button>
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              disabled={statusPending}
-                              onClick={() => handleDead(animal)}
-                              className="press min-h-11 text-xs"
-                            >
-                              মৃত
-                            </Button>
-                          </>
-                        ) : null}
+                      <div className="flex flex-wrap items-center justify-end gap-1">
+                        <AnimalStatusActions
+                          farmId={farmId}
+                          animalId={animal.id}
+                          status={animal.status}
+                          tagNo={animal.tag_no}
+                          variant="table"
+                        />
                         <Button
                           type="button"
                           variant="ghost"
                           size="sm"
                           onClick={() => handleDelete(animal)}
-                          className="press min-h-11 text-destructive"
+                          className="press min-h-9 px-2 text-xs text-destructive"
                         >
                           মুছুন
                         </Button>

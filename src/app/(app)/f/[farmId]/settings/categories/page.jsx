@@ -34,7 +34,7 @@ async function CategoriesSettingsRoute({ params }) {
     <SettingsShell
       farmId={farmId}
       title="ক্যাটাগরি ব্যবস্থাপনা"
-      description="প্রাণী, লেনদেন, ইনভেন্টরি ও স্বাস্থ্যের ক্যাটাগরি আপনি নিজে ঠিক করুন"
+      description="পশু, লেনদেন, ইনভেন্টরি, স্বাস্থ্য ও উৎপাদনের ক্যাটাগরি আপনি নিজে ঠিক করুন"
     >
       <CategoriesManager
         farmId={farmId}

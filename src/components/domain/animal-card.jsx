@@ -3,13 +3,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { STATUS_LABELS } from "@/lib/animals/constants";
 import { formatDate, formatMoney } from "@/lib/utils/format";
+import { AnimalStatusActions } from "./animal-status-actions";
 
 export function AnimalCard({
+  farmId,
   animal,
   categoryLabel,
   onDelete,
-  onSick,
-  onDead,
   banglaDigits = false,
 }) {
   return (
@@ -47,28 +47,13 @@ export function AnimalCard({
             banglaDigits,
           })}
         </span>
-        {animal.status !== "dead" ? (
-          <>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => onSick?.(animal)}
-              className="press min-h-11 text-xs"
-            >
-              অসুস্থ
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => onDead?.(animal)}
-              className="press min-h-11 text-xs"
-            >
-              মৃত
-            </Button>
-          </>
-        ) : null}
+        <AnimalStatusActions
+          farmId={farmId}
+          animalId={animal.id}
+          status={animal.status}
+          tagNo={animal.tag_no}
+          variant="card"
+        />
         <Button
           type="button"
           variant="ghost"

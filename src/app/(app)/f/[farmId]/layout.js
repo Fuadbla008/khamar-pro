@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { AppShell } from "@/components/layout/app-shell";
+import { FarmOwnerProvider } from "@/components/layout/farm-switcher";
 import { requireFarmAccess } from "@/lib/auth/require-farm-access";
 
 export default function FarmLayout({ children, params }) {
@@ -14,7 +15,7 @@ export default function FarmLayout({ children, params }) {
 
 async function FarmShell({ children, params }) {
   const { farmId } = await params;
-  const { supabase, user } = await requireFarmAccess(farmId);
+  const { supabase, user, role } = await requireFarmAccess(farmId);
 
   const [memberships, profile] = await Promise.all([
     supabase
@@ -36,8 +37,10 @@ async function FarmShell({ children, params }) {
   }));
 
   return (
-    <AppShell farmId={farmId} farms={farms} userName={profile.data?.full_name || user.email}>
-      {children}
-    </AppShell>
+    <FarmOwnerProvider isOwner={role === "owner"}>
+      <AppShell farmId={farmId} farms={farms} userName={profile.data?.full_name || user.email}>
+        {children}
+      </AppShell>
+    </FarmOwnerProvider>
   );
 }

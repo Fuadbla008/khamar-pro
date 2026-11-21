@@ -22,11 +22,12 @@ export function useBanglaDigits(farmId) {
         .maybeSingle();
 
       if (error) throw error;
-      return { bangla_digits: Boolean(data?.value?.bangla_digits) };
+      // English is the default; only an explicit opt-in enables Bengali digits.
+      return { bangla_digits: data?.value?.bangla_digits === true };
     },
   });
 
-  return Boolean(data?.bangla_digits);
+  return data?.bangla_digits === true;
 }
 
 export function useInvalidateDisplaySettings() {

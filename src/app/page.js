@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { LanguageToggle } from "@/components/domain/language-toggle";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/server";
 
@@ -38,7 +39,10 @@ async function LandingGate() {
 
 function LandingView() {
   return (
-    <main className="flex min-h-dvh flex-col items-center justify-center px-6 py-16 text-center">
+    <main className="relative flex min-h-dvh flex-col items-center justify-center px-6 py-16 text-center">
+      <div className="absolute right-4 top-4">
+        <LanguageToggle />
+      </div>
       <div className="mb-6 grid size-16 place-items-center rounded-3xl bg-primary text-3xl font-bold text-primary-foreground shadow-soft">
         খ
       </div>

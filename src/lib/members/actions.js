@@ -7,9 +7,11 @@ import { requireFarmAccess } from "@/lib/auth/require-farm-access";
 import { permissionsFromFormData } from "@/lib/members/constants";
 import { createClient } from "@/lib/supabase/server";
 
+const assignableRole = z.enum(["manager", "member"]);
+
 const inviteSchema = z.object({
   farmId: z.uuid(),
-  role: z.enum(["owner", "manager", "member"]),
+  role: assignableRole,
   maxUses: z.coerce.number().int().min(1).max(50),
   expiresInDays: z.coerce.number().int().min(1).max(30),
 });
@@ -17,7 +19,7 @@ const inviteSchema = z.object({
 const memberSchema = z.object({
   farmId: z.uuid(),
   memberId: z.uuid(),
-  role: z.enum(["owner", "manager", "member"]),
+  role: assignableRole,
 });
 
 function revalidateMembers(farmId) {
@@ -66,10 +68,39 @@ export async function updateMemberAction(_prevState, formData) {
   }
 
   const { farmId, memberId, role } = parsed.data;
-  const { supabase, role: callerRole } = await requireFarmAccess(farmId);
+  const { supabase, user, role: callerRole } = await requireFarmAccess(farmId);
 
   if (callerRole !== "owner") {
     return { error: "শুধু মালিকই ভূমিকা বদলাতে পারেন" };
+  }
+
+  // Guard against crafted requests that skip the UI's canEdit check.
+  const { data: callerMembership } = await supabase
+    .from("farm_members")
+    .select("id")
+    .eq("farm_id", farmId)
+    .eq("user_id", user.id)
+    .is("deleted_at", null)
+    .maybeSingle();
+
+  if (!callerMembership || callerMembership.id === memberId) {
+    return { error: "নিজের সদস্যপদ বদলানো যাবে না" };
+  }
+
+  const { data: target } = await supabase
+    .from("farm_members")
+    .select("role")
+    .eq("id", memberId)
+    .eq("farm_id", farmId)
+    .is("deleted_at", null)
+    .maybeSingle();
+
+  if (!target) {
+    return { error: "সদস্যকে পাওয়া যায়নি" };
+  }
+
+  if (target.role === "owner") {
+    return { error: "মালিকের ভূমিকা বদলানো যাবে না" };
   }
 
   const { error } = await supabase

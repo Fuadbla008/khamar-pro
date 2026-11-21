@@ -24,21 +24,14 @@ export function formatQuantity(value, { banglaDigits = false } = {}) {
   return banglaDigits ? toBanglaDigits(formatted) : formatted;
 }
 
+// English digits/dates are the default. Bengali locale (and its digits) is opt-in.
 export function formatDate(value, { banglaDigits = false } = {}) {
   if (!value) return "";
   const date = new Date(`${String(value).slice(0, 10)}T00:00:00`);
   if (Number.isNaN(date.getTime())) return "";
 
-  const formatted = new Intl.DateTimeFormat("bn-BD", {
+  return new Intl.DateTimeFormat(banglaDigits ? "bn-BD" : "en-US", {
     day: "numeric",
     month: "short",
   }).format(date);
-
-  return banglaDigits ? formatted : toEnglishDigits(formatted);
-}
-
-function toEnglishDigits(value) {
-  return String(value).replace(/[\u09E6-\u09EF]/g, (digit) =>
-    String(digit.charCodeAt(0) - 0x09e6)
-  );
 }

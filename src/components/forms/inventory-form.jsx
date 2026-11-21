@@ -17,7 +17,7 @@ import {
 import { UNITS } from "@/lib/inventory/constants";
 import { DynamicForm } from "./dynamic-form";
 
-export function InventoryForm({ farmId, item, definitions }) {
+export function InventoryForm({ farmId, item, definitions, draftEntity = "inventory" }) {
   const { data: categories = [] } = useCategories(farmId, "inventory");
   const action = item ? updateItemAction : createItemAction;
 
@@ -28,6 +28,7 @@ export function InventoryForm({ farmId, item, definitions }) {
       defaultValues={item?.custom_fields ?? {}}
       submitLabel={item ? "হালনাগাদ করুন" : "আইটেম যোগ করুন"}
       pendingLabel={item ? "হালনাগাদ হচ্ছে..." : "যোগ করা হচ্ছে..."}
+      draftEntity={draftEntity}
     >
       {() => (
         <>

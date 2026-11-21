@@ -17,7 +17,7 @@ import {
 import { GENDERS, STATUSES } from "@/lib/animals/constants";
 import { DynamicForm } from "./dynamic-form";
 
-export function AnimalForm({ farmId, animal, definitions }) {
+export function AnimalForm({ farmId, animal, definitions, draftEntity = "animal" }) {
   const { data: categories = [] } = useCategories(farmId, "animal");
   const action = animal ? updateAnimalAction : createAnimalAction;
 
@@ -28,6 +28,7 @@ export function AnimalForm({ farmId, animal, definitions }) {
       defaultValues={animal?.custom_fields ?? {}}
       submitLabel={animal ? "হালনাগাদ করুন" : "পশু যোগ করুন"}
       pendingLabel={animal ? "হালনাগাদ হচ্ছে..." : "যোগ করা হচ্ছে..."}
+      draftEntity={draftEntity}
     >
       {() => (
         <>

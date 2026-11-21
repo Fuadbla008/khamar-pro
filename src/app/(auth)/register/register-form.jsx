@@ -1,17 +1,23 @@
 "use client";
 
 import { useActionState } from "react";
+import { LanguageToggle } from "@/components/domain/language-toggle";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { signUpAction } from "@/lib/auth/actions";
 
-export function RegisterForm({ next }) {
+export function RegisterForm({ next, inviteCode = "" }) {
   const [state, formAction, pending] = useActionState(signUpAction, null);
 
   return (
     <form action={formAction} className="space-y-4">
       <input type="hidden" name="next" value={next} />
+      <input type="hidden" name="inviteCode" value={inviteCode} />
+
+      <div className="flex justify-end">
+        <LanguageToggle />
+      </div>
 
       <div className="space-y-2">
         <Label htmlFor="fullName">পুরো নাম</Label>

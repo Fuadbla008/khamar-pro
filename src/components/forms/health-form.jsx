@@ -31,7 +31,7 @@ function localToday() {
   return `${now.getFullYear()}-${month}-${day}`;
 }
 
-export function HealthForm({ farmId, record, definitions, onDone }) {
+export function HealthForm({ farmId, record, definitions, onDone, draftEntity = "health" }) {
   const { data: animals = [] } = useAnimals(farmId);
   const { data: medicines = [] } = useHealthMedicines(farmId);
   const [animalId, setAnimalId] = useState(record?.animal_id ?? LOT);
@@ -61,6 +61,7 @@ export function HealthForm({ farmId, record, definitions, onDone }) {
       submitLabel={record ? "হালনাগাদ করুন" : "রেকর্ড যোগ করুন"}
       pendingLabel={record ? "হালনাগাদ হচ্ছে..." : "যোগ করা হচ্ছে..."}
       disabled={!type}
+      draftEntity={draftEntity}
     >
       {() => (
         <>

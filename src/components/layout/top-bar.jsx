@@ -3,6 +3,9 @@
 import { LogOut, Menu, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { signOutAction } from "@/lib/auth/actions";
+import { DraftStatus } from "@/components/domain/draft-status";
+import { LanguageToggle } from "@/components/domain/language-toggle";
+import { ThemeToggle } from "@/components/domain/theme-toggle";
 import { FarmSwitcher } from "./farm-switcher";
 
 function initialsOf(name) {
@@ -56,6 +59,10 @@ export function TopBar({
           >
             <Search className="size-5" />
           </Button>
+
+          <DraftStatus farmId={farmId} />
+          <LanguageToggle />
+          <ThemeToggle />
 
           <span
             className="grid size-9 shrink-0 place-items-center rounded-pill bg-secondary text-xs font-semibold"

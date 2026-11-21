@@ -1,8 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "cn";
+import { NavLink } from "./nav-link";
 
 export function SettingsNav({ farmId }) {
   const pathname = usePathname();
@@ -12,6 +12,7 @@ export function SettingsNav({ farmId }) {
     { href: base, label: "সাধারণ", exact: true },
     { href: `${base}/categories`, label: "ক্যাটাগরি" },
     { href: `${base}/fields`, label: "অতিরিক্ত ঘর" },
+    { href: `${base}/export`, label: "এক্সপোর্ট ও ব্যাকআপ" },
   ];
 
   return (
@@ -25,7 +26,7 @@ export function SettingsNav({ farmId }) {
           : pathname.startsWith(link.href);
 
         return (
-          <Link
+          <NavLink
             key={link.href}
             href={link.href}
             aria-current={active ? "page" : undefined}
@@ -37,7 +38,7 @@ export function SettingsNav({ farmId }) {
             )}
           >
             {link.label}
-          </Link>
+          </NavLink>
         );
       })}
     </nav>

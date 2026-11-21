@@ -16,14 +16,20 @@ import {
 } from "@/components/ui/sheet";
 import { TransactionForm } from "@/components/forms/transaction-form";
 
-export function TransactionEditor({ mode, open, onOpenChange, formProps }) {
+export function TransactionEditor({
+  mode,
+  open,
+  onOpenChange,
+  formProps,
+  draftEntity = "transaction",
+}) {
   const title = formProps.transaction
     ? "লেনদেন সম্পাদনা করুন"
     : "নতুন লেনদেন";
   const description = formProps.transaction
     ? "লেনদেনের তথ্য হালনাগাদ করুন"
     : "খরচ বা আয়ের বিবরণ দিন";
-  const form = <TransactionForm {...formProps} />;
+  const form = <TransactionForm {...formProps} draftEntity={draftEntity} />;
 
   if (mode === "sheet") {
     return (

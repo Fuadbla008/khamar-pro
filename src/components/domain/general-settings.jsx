@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useInvalidateDisplaySettings } from "@/hooks/use-display-settings";
+import { LanguageToggle } from "@/components/domain/language-toggle";
 import {
   archiveFarmAction,
   updateFarmSettingsAction,
@@ -102,10 +103,20 @@ export function GeneralSettings({
 
             <div className="flex items-center justify-between gap-4 rounded-input border border-border p-3">
               <div className="space-y-1">
+                <p className="text-sm font-medium">ভাষা</p>
+                <p className="text-xs text-muted-foreground">
+                  ইংরেজি ডিফল্ট। বাংলা বা ইংরেজি যেকোনো সময় বদলান।
+                </p>
+              </div>
+              <LanguageToggle compact={false} />
+            </div>
+
+            <div className="flex items-center justify-between gap-4 rounded-input border border-border p-3">
+              <div className="space-y-1">
                 <Label htmlFor="bangla-digits">বাংলা অঙ্ক প্রদর্শন</Label>
                 <p className="text-xs text-muted-foreground">
-                  চালু রাখলে টাকার অঙ্ক বাংলা অক্ষরে দেখা যাবে, যেমন
-                  ৳১২,৫০০.০০। বন্ধ রাখলে ইংরেজি অঙ্ক দেখা যাবে।
+                  ইংরেজি হলো ডিফল্ট: অঙ্ক ও তারিখ ইংরেজিতে দেখা যায়। বাংলা
+                  অঙ্ক ও বাংলা মাস দেখতে চাইলে চালু করুন, যেমন ৳১২,৫০০.০০।
                 </p>
               </div>
               <Switch
